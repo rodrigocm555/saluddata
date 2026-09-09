@@ -1,4 +1,7 @@
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// Normaliza la URL base para asegurar que siempre termine en /api
+const rawBase = import.meta.env.VITE_API_URL || '';
+const cleanBase = rawBase.endsWith('/') ? rawBase.slice(0, -1) : rawBase;
+const API_URL = cleanBase ? (cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`) : '/api';
 
 export function getToken() {
   return localStorage.getItem('saluddata_token');
@@ -30,15 +33,24 @@ async function request(path, options = {}) {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  // Asegura que el path empiece con / y no lleve /api repetido
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const finalPath = cleanPath.startsWith('/api/') ? cleanPath.replace('/api', '') : cleanPath;
+
+  const response = await fetch(`${API_URL}${finalPath}`, { ...options, headers });
   const contentType = response.headers.get('content-type') || '';
   const data = contentType.includes('application/json') ? await response.json() : await response.text();
 
   if (!response.ok) {
-    if (response.status === 401 && path !== '/auth/login' && path !== '/auth/verify-code') {
+    if (response.status === 401 && !finalPath.includes('/auth/login') && !finalPath.includes('/auth/verify-code')) {
       clearSession();
     }
-    throw new Error(data?.message || data || 'Error de comunicación con el servidor.');
+    // FastAPI devuelve los errores en .detail (o .message si es personalizado)
+    const errorMessage = typeof data === 'object' 
+      ? (data.detail || data.message || JSON.stringify(data)) 
+      : data;
+      
+    throw new Error(errorMessage || 'Error de comunicación con el servidor.');
   }
   return data;
 }
@@ -54,7 +66,10 @@ export const api = {
   },
   async download(path, filename) {
     const token = getToken();
-    const response = await fetch(`${API_URL}${path}`, {
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    const finalPath = cleanPath.startsWith('/api/') ? cleanPath.replace('/api', '') : cleanPath;
+    
+    const response = await fetch(`${API_URL}${finalPath}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     if (!response.ok) throw new Error('No se pudo descargar el reporte.');
