@@ -9,6 +9,9 @@ import Usuarios from "./pages/Usuarios";
 import Pacientes from "./pages/Pacientes";
 import Configuracion from "./pages/Configuracion";
 import Login from "./pages/Login";
+import Modulos from "./pages/Modulos";
+import ModuloDetalle from "./pages/ModuloDetalle";
+import Permisos from "./pages/Permisos";
 import { getToken } from "./api";
 
 function AppLayout() {
@@ -37,6 +40,9 @@ function AppLayout() {
           <Route path="/historial" element={<Historial />} />
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/configuracion" element={<Configuracion />} />
+          <Route path="/modulos" element={<Modulos />} />
+          <Route path="/modulos/:id" element={<ModuloDetalle />} />
+          <Route path="/permisos" element={<Permisos />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
