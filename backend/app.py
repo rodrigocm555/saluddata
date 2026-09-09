@@ -23,9 +23,13 @@ from security import generate_otp, hash_otp, hash_password, issue_token, verify_
 from analytics import get_dashboard_cache
 
 app = FastAPI(title='SaludData CRM API', version='3.0.0', docs_url='/api/docs', redoc_url=None)
+
+# Configurar CORS para desarrollo y producción
+allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:8000,http://127.0.0.1:8000').split(',')
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000'],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
